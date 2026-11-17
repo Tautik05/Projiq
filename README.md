@@ -16,40 +16,42 @@ Built as a **modular monolith** in Spring Boot with Java 21, it achieves enterpr
 ## Architecture Overview
 
 ```mermaid
-graph TD
+flowchart TD
     Client["Web Client (Tailwind + Vanilla JS)"]
     
-    subgraph "Spring Boot Modular Monolith"
-        Security["Spring Security + JWT Filter"]
+    subgraph SpringBoot ["Spring Boot Modular Monolith"]
+        Security["Spring Security & JWT Filter"]
         TenantGuard["TenantInterceptor (X-Organization-Id Validation)"]
-        
-        subgraph "Application Modules"
-            AuthMod["auth\n(Tokens, Passwords, DevMail)"]
-            OrgMod["organization\n(Workspaces)"]
-            RbacMod["rbac\n(Dynamic Roles & Perms)"]
-            MemberMod["membership\n(Team & Invitations)"]
-            ProjMod["project\n(Projects)"]
-            TaskMod["task\n(Kanban, Comments, Timeline)"]
-            AuditMod["audit\n(Append-Only Log)"]
-            NotifMod["notification\n(In-App Alerts)"]
-        end
-        
         Aspect["@RequirePermission Aspect (AOP)"]
+        
+        subgraph AppModules ["Application Modules"]
+            AuthMod["auth (Tokens, Passwords, DevMail)"]
+            OrgMod["organization & membership"]
+            RbacMod["rbac (Dynamic Roles & Perms)"]
+            ProjMod["project & task (Kanban Board)"]
+            AuditMod["audit & notification"]
+        end
     end
     
-    subgraph "Infrastructure & Storage"
+    subgraph Storage ["Infrastructure & Cloud Storage"]
         Postgres[("Neon PostgreSQL\n(Shared Tables + organization_id)")]
-        Redis[("Upstash Redis\n(RBAC Cache + Rate Limiting)")]
+        Redis[("Upstash Redis\n(RBAC Cache & Rate Limiting)")]
     end
     
     Client --> Security
     Security --> TenantGuard
     TenantGuard --> Aspect
-    Aspect --> Application Modules
+    Aspect --> OrgMod
+    Aspect --> RbacMod
+    Aspect --> ProjMod
     
     RbacMod <--> Redis
     AuthMod <--> Redis
-    Application Modules --> Postgres
+    
+    OrgMod --> Postgres
+    ProjMod --> Postgres
+    AuditMod --> Postgres
+    AuthMod --> Postgres
 ```
 
 ### Module Structure
