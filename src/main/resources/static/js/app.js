@@ -284,18 +284,36 @@ async function loginUser(email, password) {
 
 async function registerUser(fullName, email, password) {
     try {
-        const res = await apiCall('/auth/register', {
+        await apiCall('/auth/register', {
             method: 'POST',
             body: JSON.stringify({ fullName, email, password }),
             skipTenant: true
         });
 
-        const authData = res.data;
-        saveTokens(authData.accessToken, authData.refreshToken);
-        state.user = authData.user;
+        showToast('Account created! Please check your verification link in the Dev Email Inbox (or terminal).', 'success');
 
-        showToast('Account created! A verification link was sent to Dev Inbox.', 'success');
-        await enterWorkspace();
+        // Switch to the Sign In tab and pre-fill email
+        const tabLogin = document.getElementById('tab-login');
+        if (tabLogin) tabLogin.click();
+
+        const loginEmail = document.getElementById('login-email');
+        if (loginEmail) loginEmail.value = email;
+
+        const loginPassword = document.getElementById('login-password');
+        if (loginPassword) {
+            loginPassword.value = '';
+            loginPassword.focus();
+        }
+
+        // Refresh dev tokens and pulse the dev drawer button
+        await pollDevTokens();
+        const devBtn = document.getElementById('dev-drawer-btn');
+        if (devBtn) {
+            devBtn.classList.add('ring-4', 'ring-amber-300', 'animate-bounce');
+            setTimeout(() => {
+                devBtn.classList.remove('ring-4', 'ring-amber-300', 'animate-bounce');
+            }, 3000);
+        }
     } catch (err) {
         showToast(err.message, 'error');
     }
