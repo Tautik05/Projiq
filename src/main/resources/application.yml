@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: projiq
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  datasource:
+    url: jdbc:postgresql://${PGHOST:ep-autumn-rain-a1ffa5q2-pooler.ap-southeast-1.aws.neon.tech}:${PGPORT:5432}/${PGDATABASE:neondb}?sslmode=require
+    username: ${PGUSER:neondb_owner}
+    password: ${PGPASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-timeout: 20000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      url: ${REDIS_URL}
+      timeout: 5000ms
+
+# Application custom configurations
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000} # 15 minutes
+    refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000} # 7 days
+  frontend:
+    base-url: ${APP_BASE_URL:http://localhost:8080}

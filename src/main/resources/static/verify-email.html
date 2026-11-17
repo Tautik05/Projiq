@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email – Projiq</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="h-full flex flex-col justify-center items-center p-4 antialiased text-slate-900">
+    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+        <!-- Logo -->
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-600 text-white font-extrabold text-xl shadow-md shadow-brand-500/25 mb-6">
+            P
+        </div>
+
+        <!-- In-Progress State -->
+        <div id="state-loading" class="space-y-4">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-600 border-t-transparent"></div>
+            <h3 class="text-lg font-bold text-slate-800">Verifying your email...</h3>
+            <p class="text-xs text-slate-500">Please wait while we validate your verification token.</p>
+        </div>
+
+        <!-- Success State -->
+        <div id="state-success" class="hidden space-y-4">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Email Verified!</h3>
+            <p class="text-xs text-slate-500">Your email has been confirmed. You now have full access to your organizations and workspaces.</p>
+            <div class="pt-2">
+                <a href="/index.html" class="inline-block w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-500/20 transition">
+                    Continue to Projiq
+                </a>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="state-error" class="hidden space-y-4">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-100 text-rose-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Verification Failed</h3>
+            <p id="error-message" class="text-xs text-slate-500">The verification token is invalid, expired, or has already been used.</p>
+            <div class="pt-2">
+                <a href="/index.html" class="inline-block w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition">
+                    Back to Projiq
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            const loadingEl = document.getElementById('state-loading');
+            const successEl = document.getElementById('state-success');
+            const errorEl = document.getElementById('state-error');
+            const errorMsgEl = document.getElementById('error-message');
+
+            if (!token) {
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                errorMsgEl.textContent = 'No verification token was provided in the link.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/verify-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+
+                const data = await response.json().catch(() => null);
+
+                loadingEl.classList.add('hidden');
+                if (response.ok) {
+                    successEl.classList.remove('hidden');
+                } else {
+                    errorEl.classList.remove('hidden');
+                    if (data && (data.message || data.error)) {
+                        errorMsgEl.textContent = data.message || data.error;
+                    }
+                }
+            } catch (err) {
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                errorMsgEl.textContent = 'Network or server error during email verification.';
+            }
+        });
+    </script>
+</body>
+</html>
