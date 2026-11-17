@@ -38,7 +38,7 @@ public class OrganizationController {
         return new ResponseEntity<>(ApiResponse.success("Organization created successfully", org), HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping({"", "/my"})
     @Operation(summary = "List all organizations the authenticated user belongs to")
     public ResponseEntity<ApiResponse<List<OrganizationDTO>>> getUserOrganizations() {
         UUID userId = SecurityUtils.getCurrentUserId();
@@ -46,7 +46,7 @@ public class OrganizationController {
         return ResponseEntity.ok(ApiResponse.success(orgs));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}")
     @Operation(summary = "Get organization details by ID")
     public ResponseEntity<ApiResponse<OrganizationDTO>> getOrganizationById(@PathVariable UUID id) {
         UUID userId = SecurityUtils.getCurrentUserId();
@@ -54,7 +54,7 @@ public class OrganizationController {
         return ResponseEntity.ok(ApiResponse.success(org));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id:[0-9a-fA-F\\-]{36}}")
     @RequirePermission("organization.update")
     @Operation(summary = "Update organization settings")
     public ResponseEntity<ApiResponse<OrganizationDTO>> updateOrganization(
@@ -64,7 +64,7 @@ public class OrganizationController {
         return ResponseEntity.ok(ApiResponse.success("Organization updated successfully", org));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:[0-9a-fA-F\\-]{36}}")
     @RequirePermission("organization.delete")
     @Operation(summary = "Delete an organization workspace")
     public ResponseEntity<ApiResponse<Void>> deleteOrganization(@PathVariable UUID id) {

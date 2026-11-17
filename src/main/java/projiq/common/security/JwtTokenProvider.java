@@ -71,6 +71,7 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
+                    .clockSkewSeconds(60)
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token);
@@ -83,6 +84,7 @@ public class JwtTokenProvider {
 
     public Claims getClaims(String token) {
         return Jwts.parser()
+                .clockSkewSeconds(60)
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)

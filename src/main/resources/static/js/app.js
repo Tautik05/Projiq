@@ -132,7 +132,11 @@ async function apiCall(endpoint, options = {}) {
         if (response.status === 401 && state.refreshToken && !options._isRetry) {
             const refreshed = await refreshAccessToken();
             if (refreshed) {
-                return apiCall(endpoint, { ...options, _isRetry: true });
+                const retryOptions = { ...options, _isRetry: true };
+                if (retryOptions.headers) {
+                    delete retryOptions.headers['Authorization'];
+                }
+                return apiCall(endpoint, retryOptions);
             } else {
                 logout();
                 throw new Error('Session expired. Please log in again.');

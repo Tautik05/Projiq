@@ -94,6 +94,20 @@ class OrganizationAndRbacTest {
                         .header("X-Organization-Id", orgId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", hasSize(4)));
+
+        // Test listing via /api/organizations
+        mockMvc.perform(get("/api/organizations")
+                        .header("Authorization", "Bearer " + owner.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", not(empty())))
+                .andExpect(jsonPath("$.data[0].id").value(orgId.toString()));
+
+        // Test listing via /api/organizations/my (ensure no MethodArgumentTypeMismatchException)
+        mockMvc.perform(get("/api/organizations/my")
+                        .header("Authorization", "Bearer " + owner.token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", not(empty())))
+                .andExpect(jsonPath("$.data[0].id").value(orgId.toString()));
     }
 
     @Test
