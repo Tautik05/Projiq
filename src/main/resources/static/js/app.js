@@ -243,6 +243,16 @@ async function initApp() {
         showAuthView();
     }
 
+    // Pre-fill email if returning from verification link
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlEmail = urlParams.get('email');
+    if (urlEmail) {
+        const loginEmailInput = document.getElementById('login-email');
+        if (loginEmailInput) loginEmailInput.value = urlEmail;
+        const loginPwdInput = document.getElementById('login-password');
+        if (loginPwdInput) loginPwdInput.focus();
+    }
+
     // Start Dev Token Poller (Development Mode Simulator)
     startDevPolling();
 }

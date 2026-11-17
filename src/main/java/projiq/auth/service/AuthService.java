@@ -114,6 +114,8 @@ public class AuthService {
         RefreshToken refreshToken = new RefreshToken(user, refreshTokenHash, expiresAt, deviceInfo);
         refreshTokenRepository.save(refreshToken);
 
+        log.info("User logged in successfully: {}", user.getEmail());
+
         return new AuthResponse(
                 accessToken,
                 rawRefreshToken,
@@ -231,7 +233,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void verifyEmail(VerifyEmailRequest request) {
+    public String verifyEmail(VerifyEmailRequest request) {
         String tokenHash = TokenHashUtils.hashToken(request.getToken().trim());
 
         AuthToken authToken = authTokenRepository.findByTokenHashAndTokenType(tokenHash, AuthTokenType.EMAIL_VERIFICATION)
@@ -247,6 +249,9 @@ public class AuthService {
 
         authToken.setUsed(true);
         authTokenRepository.save(authToken);
+
+        log.info("User email verified successfully: {}", user.getEmail());
+        return user.getEmail();
     }
 
     @Transactional(readOnly = true)
