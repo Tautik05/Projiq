@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Email – Projiq</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -98,9 +99,17 @@
                 if (response.ok) {
                     successEl.classList.remove('hidden');
                 } else {
-                    errorEl.classList.remove('hidden');
-                    if (data && (data.message || data.error)) {
-                        errorMsgEl.textContent = data.message || data.error;
+                    const errorText = (data && (data.message || data.error)) || '';
+                    if (errorText.toLowerCase().includes('already been used')) {
+                        // Email is already verified!
+                        successEl.classList.remove('hidden');
+                        successEl.querySelector('h3').textContent = 'Already Verified!';
+                        successEl.querySelector('p').textContent = 'Your email address is already verified. You can proceed directly to your workspace.';
+                    } else {
+                        errorEl.classList.remove('hidden');
+                        if (errorText) {
+                            errorMsgEl.textContent = errorText;
+                        }
                     }
                 }
             } catch (err) {

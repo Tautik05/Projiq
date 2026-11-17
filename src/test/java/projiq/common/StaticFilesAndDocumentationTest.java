@@ -53,6 +53,13 @@ public class StaticFilesAndDocumentationTest {
     }
 
     @Test
+    @DisplayName("Should serve favicon.ico anonymously")
+    void shouldServeFaviconIco() throws Exception {
+        mockMvc.perform(get("/favicon.ico"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("Should serve OpenAPI docs anonymously")
     void shouldServeOpenApiDocs() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
