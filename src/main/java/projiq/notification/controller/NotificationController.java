@@ -52,7 +52,7 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success("Notification marked as read", notification));
     }
 
-    @PostMapping("/mark-all-read")
+    @RequestMapping(value = "/mark-all-read", method = {RequestMethod.POST, RequestMethod.PUT})
     @Operation(summary = "Mark all user notifications as read")
     public ResponseEntity<ApiResponse<Void>> markAllAsRead() {
         UUID userId = SecurityUtils.getCurrentUserId();

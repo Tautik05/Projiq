@@ -1069,7 +1069,9 @@ async function loadUnreadNotificationsCount() {
 
     try {
         const res = await apiCall('/notifications/unread-count', { skipTenant: true });
-        const count = res.data || 0;
+        const count = (res.data && typeof res.data === 'object' && 'unreadCount' in res.data)
+            ? res.data.unreadCount
+            : (typeof res.data === 'number' ? res.data : 0);
         state.unreadNotificationsCount = count;
 
         const badge = document.getElementById('notif-badge');
@@ -1094,7 +1096,8 @@ async function loadNotificationsList() {
 
     try {
         const res = await apiCall('/notifications', { skipTenant: true });
-        const notifications = res.data || [];
+        const pagedData = res.data;
+        const notifications = Array.isArray(pagedData) ? pagedData : (pagedData?.content || []);
 
         if (notifications.length === 0) {
             list.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No notifications</p>`;
@@ -1102,7 +1105,8 @@ async function loadNotificationsList() {
         }
 
         list.innerHTML = notifications.map(n => `
-            <div class="p-2.5 rounded-xl border transition ${n.read ? 'bg-white border-slate-100 opacity-75' : 'bg-brand-50/50 border-brand-100 font-semibold'}">
+            <div class="p-2.5 rounded-xl border transition ${n.read ? 'bg-white border-slate-100 opacity-75' : 'bg-brand-50/50 border-brand-100 font-semibold cursor-pointer hover:bg-brand-50'}"
+                 data-notif-id="${n.id}">
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-xs text-slate-900">${escapeHtml(n.title)}</span>
                     <span class="text-[10px] text-slate-400">${formatTimeAgo(n.createdAt)}</span>
@@ -1110,14 +1114,28 @@ async function loadNotificationsList() {
                 <p class="text-[11px] text-slate-600">${escapeHtml(n.message)}</p>
             </div>
         `).join('');
+
+        // Attach click handlers to unread notifications to mark as read
+        list.querySelectorAll('[data-notif-id]').forEach(el => {
+            el.addEventListener('click', async () => {
+                const id = el.dataset.notifId;
+                try {
+                    await apiCall(`/notifications/${id}/read`, { method: 'PATCH', skipTenant: true });
+                    await loadUnreadNotificationsCount();
+                    await loadNotificationsList();
+                } catch (e) {
+                    // ignore
+                }
+            });
+        });
     } catch (err) {
-        list.innerHTML = `<p class="text-xs text-rose-500 text-center py-4">Error loading notifications</p>`;
+        list.innerHTML = `<p class="text-xs text-rose-500 text-center py-4">Error loading notifications: ${escapeHtml(err.message)}</p>`;
     }
 }
 
 async function markAllNotificationsRead() {
     try {
-        await apiCall('/notifications/mark-all-read', { method: 'PUT', skipTenant: true });
+        await apiCall('/notifications/mark-all-read', { method: 'POST', skipTenant: true });
         await loadUnreadNotificationsCount();
         await loadNotificationsList();
     } catch (err) {
