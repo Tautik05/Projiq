@@ -147,7 +147,9 @@ async function apiCall(endpoint, options = {}) {
 
         if (!response.ok) {
             const errorMsg = (data && (data.message || data.error)) || `Request failed with status ${response.status}`;
-            throw new Error(errorMsg);
+            const err = new Error(errorMsg);
+            err.status = response.status;
+            throw err;
         }
 
         return data;
@@ -758,7 +760,15 @@ async function loadMembers() {
         renderMembersTable();
         populateAssigneeAndManagerDropdowns();
     } catch (err) {
-        showToast('Failed to load team members: ' + err.message, 'error');
+        if (err.status === 403) {
+            state.members = [];
+            const tbody = document.getElementById('members-table-body');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-slate-400 bg-slate-50">You do not have permission to view workspace members (requires <code>organization.read</code>).</td></tr>`;
+            }
+        } else {
+            showToast('Failed to load team members: ' + err.message, 'error');
+        }
     }
 }
 
@@ -878,7 +888,15 @@ async function loadRoles() {
         renderInviteRoleSelect();
         renderPermissionsCheckboxes();
     } catch (err) {
-        showToast('Failed to load roles: ' + err.message, 'error');
+        if (err.status === 403) {
+            state.roles = [];
+            const container = document.getElementById('roles-cards-container');
+            if (container) {
+                container.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">You do not have permission to view or manage custom roles (requires <code>organization.read</code>).</div>`;
+            }
+        } else {
+            showToast('Failed to load roles: ' + err.message, 'error');
+        }
     }
 }
 
@@ -1035,7 +1053,11 @@ async function loadAuditLogs() {
             </tr>
         `).join('');
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-xs text-rose-500">Failed to load audit logs: ${escapeHtml(err.message)}</td></tr>`;
+        if (err.status === 403) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-slate-400 bg-slate-50">You do not have permission to view audit logs (requires <code>audit.read</code>).</td></tr>`;
+        } else {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-xs text-rose-500">Failed to load audit logs: ${escapeHtml(err.message)}</td></tr>`;
+        }
     }
 }
 
