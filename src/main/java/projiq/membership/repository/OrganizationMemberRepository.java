@@ -28,6 +28,12 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
     boolean existsByOrganizationIdAndUserId(UUID organizationId, UUID userId);
 
     @Query("SELECT om FROM OrganizationMember om " +
+            "JOIN FETCH om.organization o " +
+            "JOIN FETCH om.role r " +
+            "WHERE om.user.id = :userId ORDER BY o.name ASC")
+    List<OrganizationMember> findByUserIdWithOrganizationAndRole(@Param("userId") UUID userId);
+
+    @Query("SELECT om FROM OrganizationMember om " +
             "JOIN FETCH om.user u " +
             "JOIN FETCH om.role r " +
             "WHERE om.organization.id = :orgId ORDER BY om.joinedAt ASC")

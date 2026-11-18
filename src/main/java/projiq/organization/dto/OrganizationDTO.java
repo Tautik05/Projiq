@@ -84,6 +84,10 @@ public class OrganizationDTO {
         return roleName;
     }
 
+    public String getUserRole() {
+        return roleName;
+    }
+
     public void setRoleName(String roleName) {
         this.roleName = roleName;
     }

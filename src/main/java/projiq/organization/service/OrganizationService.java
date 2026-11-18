@@ -78,10 +78,7 @@ public class OrganizationService {
 
     @Transactional(readOnly = true)
     public List<OrganizationDTO> getUserOrganizations(UUID userId) {
-        List<OrganizationMember> memberships = memberRepository.findAll().stream()
-                .filter(m -> m.getUser().getId().equals(userId))
-                .sorted(Comparator.comparing(m -> m.getOrganization().getName()))
-                .collect(Collectors.toList());
+        List<OrganizationMember> memberships = memberRepository.findByUserIdWithOrganizationAndRole(userId);
 
         return memberships.stream()
                 .map(m -> OrganizationDTO.from(m.getOrganization(), m.getRole().getName()))

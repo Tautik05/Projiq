@@ -401,7 +401,18 @@ async function switchOrganization(orgId) {
     localStorage.setItem('projiq_last_org', org.id);
 
     document.getElementById('current-org-name').textContent = org.name;
-    document.getElementById('current-user-role-badge').textContent = org.userRole || 'Member';
+    const role = org.roleName || org.userRole || 'Owner';
+    const roleBadge = document.getElementById('current-user-role-badge');
+    if (roleBadge) {
+        roleBadge.textContent = role;
+        if (role === 'Owner') {
+            roleBadge.className = 'text-xs bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full border border-purple-200';
+        } else if (role === 'Admin') {
+            roleBadge.className = 'text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full border border-blue-200';
+        } else {
+            roleBadge.className = 'text-xs bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded-full border border-slate-200';
+        }
+    }
 
     // Hide dropdown
     document.getElementById('org-dropdown').classList.add('hidden');
@@ -426,11 +437,15 @@ function renderOrgDropdown() {
 
     list.innerHTML = state.organizations.map(org => {
         const isCurrent = state.currentOrg && state.currentOrg.id === org.id;
+        const role = org.roleName || org.userRole || 'Owner';
+        const roleClass = role === 'Owner'
+            ? 'bg-purple-100 text-purple-700 font-semibold border border-purple-200'
+            : (role === 'Admin' ? 'bg-blue-100 text-blue-700 font-semibold border border-blue-200' : 'bg-slate-100 text-slate-600 font-medium');
         return `
             <button class="org-item w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition ${isCurrent ? 'bg-brand-50/70 text-brand-700 font-bold' : 'text-slate-700'}"
                     data-org-id="${org.id}">
                 <span class="truncate">${escapeHtml(org.name)}</span>
-                <span class="text-[10px] text-slate-400 px-1.5 py-0.5 rounded bg-slate-100">${escapeHtml(org.userRole || 'Member')}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded ${roleClass}">${escapeHtml(role)}</span>
             </button>
         `;
     }).join('');
