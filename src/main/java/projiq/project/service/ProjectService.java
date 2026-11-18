@@ -87,7 +87,15 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public List<ProjectDTO> searchProjects(UUID organizationId, ProjectStatus status, String search) {
-        return projectRepository.searchProjects(organizationId, status, search).stream()
+        List<Project> projects;
+        if (search != null && !search.trim().isEmpty()) {
+            String pattern = "%" + search.trim().toLowerCase() + "%";
+            projects = projectRepository.searchByOrganizationIdAndStatusAndName(organizationId, status, pattern);
+        } else {
+            projects = projectRepository.findByOrganizationIdAndStatus(organizationId, status);
+        }
+
+        return projects.stream()
                 .map(ProjectDTO::from)
                 .collect(Collectors.toList());
     }

@@ -105,6 +105,22 @@ class ProjectAndTaskTest {
         UUID projectId = UUID.fromString(objectMapper.readTree(projectRes.getResponse().getContentAsString())
                 .path("data").path("id").asText());
 
+        // Test listing projects without search query (verifies lower(bytea) bug fix)
+        mockMvc.perform(get("/api/projects")
+                        .header("Authorization", "Bearer " + owner1.token())
+                        .header("X-Organization-Id", org1Id.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", not(empty())))
+                .andExpect(jsonPath("$.data[0].id").value(projectId.toString()));
+
+        // Test searching projects by keyword
+        mockMvc.perform(get("/api/projects?search=Backend")
+                        .header("Authorization", "Bearer " + owner1.token())
+                        .header("X-Organization-Id", org1Id.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", not(empty())))
+                .andExpect(jsonPath("$.data[0].name").value("Backend Rewrite"));
+
         // 2. Cross-tenant test: OtherUser cannot access this project using Org 1 or Org 2
         mockMvc.perform(get("/api/projects/" + projectId)
                         .header("Authorization", "Bearer " + otherUser.token())
